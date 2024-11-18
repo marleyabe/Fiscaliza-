@@ -1,0 +1,46 @@
+/* Tamanho fixo para as imagens e ajuste para preenchimento */
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Limita a largura do feed para parecer com a visualização mobile */
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* Estilo dos cards */
+.card {
+    border: none;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* Estilo do corpo do card */
+.card-body {
+    text-align: center;
+    padding: 10px;
+}
+
+/* Título e texto do card */
+.card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.card-text {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Estilo para esconder a barra de rolagem horizontal */
+body {
+    overflow-x: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}

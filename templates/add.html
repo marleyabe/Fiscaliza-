@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Denúncia</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #videoElement {
+            flex: 1;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        #captureButton {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffffffaa;
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #captureButton:active {
+            background-color: #ffffff;
+        }
+
+        nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+        }
+
+        nav a {
+            color: #555;
+            text-decoration: none;
+            font-size: 1.5rem;
+        }
+
+        nav a.active {
+            color: #007bff;
+        }
+
+        nav a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay="true" id="videoElement"></video>
+    <button id="captureButton"></button>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="/feed" class="nav-link">
+            <i class="bi bi-house-door-fill"></i>
+        </a>
+        <a href="/add" class="nav-link active">
+            <i class="bi bi-plus-circle-fill"></i>
+        </a>
+        <a href="/map" class="nav-link">
+            <i class="bi bi-geo-alt-fill"></i>
+        </a>
+    </nav>
+
+    <script>
+        const video = document.querySelector("#videoElement");
+        const captureButton = document.getElementById("captureButton");
+
+        let latitude = null;
+        let longitude = null;
+
+        // Acessar a câmera do usuário
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    video.srcObject = stream;
+                })
+                .catch((err) => {
+                    console.error("Erro ao acessar a câmera:", err);
+                    alert("Erro ao acessar a câmera. Verifique as permissões.");
+                });
+        }
+
+        // Obter localização do usuário
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                },
+                (error) => {
+                    console.error("Erro ao obter localização:", error);
+                    alert("Erro ao obter localização. Verifique as permissões.");
+                }
+            );
+        }
+
+        // Capturar e enviar a imagem
+        captureButton.addEventListener("click", async () => {
+        if (!latitude || !longitude) {
+            alert("Localização ainda não disponível. Tente novamente.");
+            return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL("image/png");
+
+        try {
+            const response = await fetch('/denuncias', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: imageData,
+                    latitude: latitude,
+                    longitude: longitude
+                }),
+            });
+
+            // Verifica se a resposta contém JSON válido
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Erro desconhecido");
+            }
+
+            const data = await response.json();
+            alert(data.message || "Denúncia enviada com sucesso!");
+            window.location.href = '/feed'; // Redireciona para o feed
+        } catch (err) {
+            console.error("Erro ao enviar a denúncia:", err.message);
+            alert(`Erro ao enviar a denúncia: ${err.message}`);
+        }
+    });
+    </script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+</body>
+</html>
